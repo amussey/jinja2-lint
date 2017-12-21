@@ -4,6 +4,7 @@
 
 Simple j2 linter, useful for checking jinja2 template syntax
 """
+import click
 import jinja2
 import os.path
 from functools import reduce
@@ -22,13 +23,29 @@ class AbsolutePathLoader(jinja2.BaseLoader):
 def check(template, out, err, env=jinja2.Environment(loader=AbsolutePathLoader())):
     try:
         env.get_template(template)
-        out.write("%s: Syntax OK\n" % template)
+
+        out.write("{}: {}\n".format(
+            template,
+            click.style('Syntax OK', fg='green'),
+        ))
         return 0
     except jinja2.TemplateNotFound:
-        err.write("%s: File not found\n" % template)
+        err.write("{}: {}\n".format(
+            template,
+            click.style('File not found', fg='yellow'),
+        ))
         return 2
     except jinja2.exceptions.TemplateSyntaxError as e:
-        err.write("%s: Syntax check failed: %s in %s at %d\n" % (template, e.message, e.filename, e.lineno))
+        err.write(
+            "{}: {}\n".format(
+                template,
+                click.style('Syntax check failed: {} in {} at {}'.format(
+                    e.message,
+                    e.filename,
+                    e.lineno
+                ), fg='red')
+            )
+        )
         return 1
 
 
